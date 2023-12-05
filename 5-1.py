@@ -1,10 +1,3 @@
-from icecream import ic
-from collections import defaultdict
-
-class DefaultDict(defaultdict):
-    def __missing__(self, key):
-        return self.default_factory(key)
-
 with open('data/5.txt') as f:
     seeds = f.readline().strip().split(': ')[1].split()
     next(f)
@@ -51,34 +44,21 @@ with open('data/5.txt') as f:
         if line := f.readline().strip():
             humid_loc.append(line.split())
 
-    
-# print(seed_soil, soil_fert, fert_water, water_light, light_temp, temp_humid, humid_loc)
-
-def inp_to_map(inp):
-    final = DefaultDict(lambda key: key)
-    for line in inp:
-        dest, source, rge = map(int, line)
-        final.update({x: x + dest - source for x in range(source, source+rge)})    
-    # for i in range(max(final.keys())):
-    #     if i not in final:
-    #         final[i] = i    
-    return final
+    maps = (seed_soil, soil_fert, fert_water, water_light, light_temp, temp_humid, humid_loc)
 
 
-seed_soil, soil_fert, fert_water, water_light, light_temp, temp_humid, humid_loc = map(inp_to_map, (seed_soil, soil_fert, fert_water, water_light, light_temp, temp_humid, humid_loc))
+def get_value(key, map_):
+    for contig in map_:
+        dest, source, range_ = map(int, contig)
+        if source <= key <= source+range_:
+            return key + dest - source        
+    return key
 
-def find_location(seed, seed_soil, soil_fert, fert_water, water_light, light_temp, temp_humid, humid_loc):
-    return humid_loc[temp_humid[light_temp[water_light[fert_water[soil_fert[seed_soil[seed]]]]]]]
+def find_location(seed, maps):
+    ans = seed
+    for map in maps:
+        ans = get_value(ans, map)
+    return ans
 
-# ic(find_location(79, seed_soil, soil_fert, fert_water, water_light, light_temp, temp_humid, humid_loc))
-# ic(find_location(14, seed_soil, soil_fert, fert_water, water_light, light_temp, temp_humid, humid_loc))
-# ic(find_location(55, seed_soil, soil_fert, fert_water, water_light, light_temp, temp_humid, humid_loc))
 
-l = []
-for seed in seeds:
-    try:
-        l.append(find_location(int(seed), seed_soil, soil_fert, fert_water, water_light, light_temp, temp_humid, humid_loc))
-    except:
-        ic(seed, 'error')
-
-print(min(l))
+print(min(find_location(int(seed), maps) for seed in seeds))
