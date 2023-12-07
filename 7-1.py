@@ -8,61 +8,10 @@ with open('data/7.txt') as f:
         deck[line[0]] = int(line[1])
         line = f.readline().strip().split()
         
-classes = {a: b for (b, a) in enumerate('AKQJT98765432')}
-classes = {a: b for (b, a) in zip(string.ascii_letters,'AKQJT98765432')}
-# print(classes)
+hands = dict(zip('AKQJT98765432', string.ascii_letters))
 
 
-def reorder(draws):
-    # unchanged = {a: True for a in draws}
-    order = {draw: '' for draw in draws}
-    for i in range(5):
-        # if len(set(draw[i] for draw in draws)) == 1:
-        # if len(set(draw[i] for draw in draws)) != 1:
-        # sort = sorted(draws, key=lambda x: classes[x[i]])
-        # sort = sorted(set(draw[i] for draw in draws), key=lambda x:classes[x])
-        # print(sort)
-        for draw in draws:
-            order[draw] += str(classes[draw[i]])
-    
-    print(order)
-    # order = {k: int(v) for (k, v) in order.items()}
-    # print({k: v for (k, v) in sorted(order.items(), key=lambda x: x[1])})
-    order = [k for (k, v) in sorted(order.items(), key=lambda x: x[1], reverse=True)]
-
-    # order = sorted(draws, key=)
-
-    # return list(order.keys())
-    return order
-
-
-def make_trie(draws):
-    trie = {}
-    
-    new_node = 0
-    for draw in draws:
-        # draw = '$' + draw
-        node = 0
-        for symbol in draw:
-            
-            # if already existed an edge with label symbol
-            existed = False
-            for edge in trie:
-                if edge[0] == node and trie[edge] == symbol:
-                    node = edge[1]
-                    existed = True
-                    break
-            
-            # if such edge doesn't exist
-            if not existed:
-                new_node += 1
-                trie[(node, new_node)] = symbol
-                node = new_node
-    
-    return trie
-
-
-def type(draw):
+def type(draw:list):
     match len(set(draw)):
         case 1:
             return 0
@@ -79,24 +28,29 @@ def type(draw):
                 return 4
         case 4:
             return 5
-        case _:
+        case 5:
             return 6
 
-score = defaultdict(list)
+
+def reorder(draws):
+    recode = {draw: '' for draw in draws}
+    for i in range(5):
+        for draw in draws:
+            recode[draw] += hands[draw[i]]    
+    return [kv[0] for kv in sorted(recode.items(), key=lambda x:x[1], reverse=True)]
+
+
+# Classify deck into types
+types = defaultdict(list)
 for draw in deck:
-    score[type(draw)] += [draw]
+    types[type(draw)] += [draw]
 
-# print(dict(score))
+# For each type, reorder from low to high score
+for type_ in types:
+    types[type_] = reorder(types[type_])
 
-for type_ in score:
-    score[type_] = reorder(score[type_])
+# Flatten types into list
+order = [item for l in [x for x in [types[k] for k in sorted(types, reverse=True)]] for item in l]
 
-final_order = [item for l in [x for x in [score[k] for k in sorted(score, reverse=True)]] for item in l]
-# final_order.reverse()
-
-print(score)
-print(final_order)
-# print(deck)
-
-total = sum(deck[draw] * (final_order.index(draw)+1) for draw in deck)
-print(total)
+# Calculate sum
+print(sum(deck[draw] * (order.index(draw)+1) for draw in deck))
