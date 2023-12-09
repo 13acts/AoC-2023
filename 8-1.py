@@ -1,19 +1,17 @@
-import itertools
+from itertools import cycle
 
 with open('data/8.txt') as f:
     steps = f.readline().strip()
     next(f)
     tree = {}
-    line = f.readline().strip()
-    while line:
+    while line := f.readline().strip():
         node, nexts = line.split(' = ')
         nexts = nexts.strip('()').split(', ')
         tree[node] = nexts
-        line = f.readline().strip()
 
 counter = 0
 current = 'AAA'
-for step in itertools.cycle(steps):
+for step in cycle(steps):
     if current == 'ZZZ':
         print(counter)
         exit()    
