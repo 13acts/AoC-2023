@@ -100,8 +100,8 @@ def sides_outlines() -> tuple[set]:
     Follow along path and separate adjacent coordinates of path into left side and right sight
     '''
     "Corner case: Starting node is not accounted when searching for adj nodes"    
-    ref = {I: ((3), 5, 7),
-           H: ((1), 7, 3),
+    ref = {I: ([3], 5, 7),
+           H: ([1], 7, 3),
            F: ((0,1,3), 8, 7),
            T: ((1,2,5), 6, 3),
            J: ((5,7,8), 0, 1),
@@ -112,45 +112,17 @@ def sides_outlines() -> tuple[set]:
     side_R = set()
     while path:
         node = path.pop()
-        label = node.label
+        if node.label == S:
+            continue
         coord = node.coord
-        match label:
-            case '|':
-                side_1 = {adj(coord, 3)}
-                side_2 = {adj(coord, 5)}
-                a, b = (side_1, side_2) if previous.coord == adj(coord, 7) else (side_2, side_1)
-                side_L = side_L.union(a)
-                side_R = side_R.union(b)
-            case '-':
-                side_1 = {adj(coord, 1)}
-                side_2 = {adj(coord, 7)}
-                a, b = (side_1, side_2) if previous.coord == adj(coord, 3) else (side_2, side_1)
-                side_L = side_L.union(a)
-                side_R = side_R.union(b)
-            case 'F':
-                side_1 = {adj(coord, x) for x in (0, 1, 3)}
-                side_2 = {adj(coord, 8)}
-                a, b = (side_1, side_2) if previous.coord == adj(coord, 7) else (side_2, side_1)
-                side_L = side_L.union(a)
-                side_R = side_R.union(b)
-            case '7':
-                side_1 = {adj(coord, x) for x in (1, 2, 5)}
-                side_2 = {adj(coord, 6)}
-                a, b = (side_1, side_2) if previous.coord == adj(coord, 3) else (side_2, side_1)
-                side_L = side_L.union(a)
-                side_R = side_R.union(b)
-            case 'J':
-                side_1 = {adj(coord, x) for x in (5, 7, 8)}
-                side_2 = {adj(coord, 0)}
-                a, b = (side_1, side_2) if previous.coord == adj(coord, 1) else (side_2, side_1)
-                side_L = side_L.union(a)
-                side_R = side_R.union(b)
-            case 'L':
-                side_1 = {adj(coord, x) for x in (3, 6, 7)}
-                side_2 = {adj(coord, 2)}
-                a, b = (side_1, side_2) if previous.coord == adj(coord, 5) else (side_2, side_1)
-                side_L = side_L.union(a)
-                side_R = side_R.union(b)
+        a, b, c = ref[node.label]
+
+        side_1 = {adj(coord, x) for x in a}
+        side_2 = {adj(coord, b)}
+        left, right = (side_1, side_2) if previous.coord == adj(coord, c) else (side_2, side_1)
+        side_L = side_L.union(left)
+        side_R = side_R.union(right)
+
         previous = node
     side_L.discard(None)
     side_R.discard(None)
