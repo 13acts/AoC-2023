@@ -15,19 +15,17 @@ with open('data/12.txt') as f:
     if PART == 1:
         for line in lines:
             a, b = line.split()
-            layout.append((a, list(map(int, b.split(',')))))
+            layout.append((a, [int(x) for x in b.split(',')]))
 
     if PART == 2:
         for line in lines:
             a, b = line.split()
-            a = '?'.join([a]*5)
-            b = list(map(int, b.split(',')))*5
-            layout.append((a, b))
+            layout.append(('?'.join([a]*5), [int(x) for x in b.split(',')]*5))
 
 
 def solve_line(symbols, guide):
     cache = []
-    for i, frame in enumerate(valid_frame(len(symbols), guide)):
+    for i, frame in enumerate(frames(len(symbols), guide)):
         if STEP_DEBUG:
             ic(frame)
         cache += [valid_combinations(guide[i], frame, symbols[frame[0]:frame[1]+1])]
@@ -48,7 +46,7 @@ def solve_line(symbols, guide):
 
         if STEP_DEBUG:
             ic(combin)
-        if combin not in validated and list(map(len, re.findall(r'(#+)', combin))) == guide and valid_snip(combin, symbols):
+        if combin not in validated and [len(x) for x in re.findall(r'(#+)', combin)] == guide and is_aligned(combin, symbols):
             if STEP_DEBUG:
                 ic(True)
             validated.add(combin)   
@@ -56,14 +54,14 @@ def solve_line(symbols, guide):
     return len(validated)
 
 
-def valid_snip(combin, ref):
+def is_aligned(combin, ref):
     for i in range(len(ref)):
         if (combin[i] == O and ref[i] == X) or (combin[i] == X and ref[i] == O):
             return False
     return True
 
 
-def valid_frame(total:int, numbers:list[int]) -> list:
+def frames(total:int, numbers:list[int]) -> list:
     return [(sum(x+1 for x in numbers[:i]), total-1-sum(x+1 for x in numbers[i+1:])) for i in range(len(numbers))]
 
 
