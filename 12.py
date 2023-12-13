@@ -30,28 +30,15 @@ def solve_line(symbols, guide):
             ic(frame)
         cache += [valid_combinations(guide[i], frame, symbols[frame[0]:frame[1]+1])]
     
-    # ic(cache)
+    ic(cache)
     # print(list(itertools.product(*cache)))
 
     ####### OPTIMIZED UP TO THIS POINT ##########
     # Some lines can have products len up to 10e+19
 
-    validated = set()
-    for tuple in itertools.product(*cache):
-        combin = [X] * len(symbols)
-        for i, pos in enumerate(tuple):
-            for k in range(pos, pos+guide[i]):
-                combin[k] = O
-        combin = ''.join(combin)
+    validated = solve(cache, symbols, guide)
 
-        if STEP_DEBUG:
-            ic(combin)
-        if combin not in validated and [len(x) for x in re.findall(r'(#+)', combin)] == guide and is_aligned(combin, symbols):
-            if STEP_DEBUG:
-                ic(True)
-            validated.add(combin)   
-
-    return len(validated)
+    return validated
 
 
 def is_aligned(combin, ref):
@@ -73,16 +60,44 @@ def valid_combinations(k:int, frame:tuple, ref:str) -> list:
             result += [frame[0]+i]
     return result
 
+			
+	
+def solve(cache, symbols, guide):
+	n = 0
+	def recur(curr_patch, previous_pos):
+		if curr_patch == len(guide):
+			n += 1
+			return
+		for patch_pos in cache[curr_patch]:
+			if patch_pos > previous_pos+guide[curr_patch-1]:
+				recur(curr_patch+1, curr_patch)
+	for x in cache[0]:
+		recur(1, x)
+	return n
+		
+		
+	
+def valid_count(positions:list[tuple], guide:list[int], curr_patch:int, previous_pos:int):
+	if curr_patch == len(guide):
+		return
+	
+	this = []
+	for patch_pos in positions[curr_patch]:
+		if patch_pos > previous_pos+guide[curr_patch-1]:
+			this += [patch_pos]
+			
+	
 
 
-print(sum(solve_line(symbols, guide) for symbols, guide in layout))
+
+# print(sum(solve_line(symbols, guide) for symbols, guide in layout))
 
 
 
 ############ DEBUG ############################
 
 # assert solve_line('???.###', [1, 1, 3]) == 1
-# assert solve_line('.??..??...?##.', [1, 1, 3]) == 4
+assert solve_line('.??..??...?##.', [1, 1, 3]) == 4
 # assert solve_line('?###????????', [3, 2, 1]) == 10
 # assert solve_line('?#?#?#?#?#?#?#?', [1, 3, 1, 6]) == 1
 # assert solve_line('????.######..#####.', [1, 6, 5]) == 4
