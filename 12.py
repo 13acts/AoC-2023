@@ -6,8 +6,9 @@ U = '?'
 X = '.'
 O = '#'
 
-PART = 1
+PART = 2
 STEP_DEBUG = False
+P2_DEBUG = True
 
 with open('data/12.txt') as f:
     lines = f.read().splitlines()
@@ -30,6 +31,7 @@ def solve_line(symbols, guide):
             ic(frame)
         cache += [valid_combinations(guide[i], frame, symbols[frame[0]:frame[1]+1])]
     
+    # if P2_DEBUG:
     ic(cache)
     # print(list(itertools.product(*cache)))
 
@@ -37,6 +39,9 @@ def solve_line(symbols, guide):
     # Some lines can have products len up to 10e+19
 
     validated = solve(cache, symbols, guide)
+
+    if P2_DEBUG:
+        print(validated)
 
     return validated
 
@@ -60,36 +65,59 @@ def valid_combinations(k:int, frame:tuple, ref:str) -> list:
             result += [frame[0]+i]
     return result
 
-			
-	
+            
+    
 def solve(cache, symbols, guide):
-	n = 0
-	def recur(curr_patch, previous_pos):
-		if curr_patch == len(guide):
-			n += 1
-			return
-		for patch_pos in cache[curr_patch]:
-			if patch_pos > previous_pos+guide[curr_patch-1]:
-				recur(curr_patch+1, curr_patch)
-	for x in cache[0]:
-		recur(1, x)
-	return n
-		
-		
-	
-def valid_count(positions:list[tuple], guide:list[int], curr_patch:int, previous_pos:int):
-	if curr_patch == len(guide):
-		return
-	
-	this = []
-	for patch_pos in positions[curr_patch]:
-		if patch_pos > previous_pos+guide[curr_patch-1]:
-			this += [patch_pos]
-			
-	
+    count = 0
+    def recur(curr_patch, previous_pos, n, log:list):
+        if curr_patch == len(guide):
+            if P2_DEBUG:
+                print(log,'found 1')
+            
+            if is_aligned(index_to_string(log, guide, len(symbols)), symbols):
+                n += 1
+            return n
+        for patch_pos in cache[curr_patch]:
+            
+            if patch_pos+guide[curr_patch] < len(symbols):
+                flank = patch_pos-1, patch_pos+guide[curr_patch]
+            else:
+                flank = [patch_pos-1]
+
+            if patch_pos > previous_pos+guide[curr_patch-1] and all(symbols[x] != O for x in flank):
+                if P2_DEBUG:
+                    ic(patch_pos)
+                log += [patch_pos]
+                n = recur(curr_patch+1, patch_pos, n, log)
+                log.pop()    
+        return n
+    
+    for x in cache[0]:
+        if x != 0:
+            flank = x-1, x+guide[0]
+        else:
+            flank = [x+guide[0]]
+        if all(symbols[x] != O for x in flank):
+            if P2_DEBUG:
+                ic(x)        
+            count += recur(1, x, 0, [x])
+    return count
 
 
+def index_to_string(log, guide, l):
+    string = [X] * l
+    for i, v in enumerate(log):
+        for j in range(v, v+guide[i]):
+            string[j] = O
+    return ''.join(string)
 
+# print(index_to_string([0, 2, 5, 7, 10], [1, 2, 1, 1, 7], 20))
+
+
+total = 0
+for symbols, guide in layout[:1]:
+    print(symbols)
+    total += solve_line(symbols, guide)
 # print(sum(solve_line(symbols, guide) for symbols, guide in layout))
 
 
@@ -97,7 +125,7 @@ def valid_count(positions:list[tuple], guide:list[int], curr_patch:int, previous
 ############ DEBUG ############################
 
 # assert solve_line('???.###', [1, 1, 3]) == 1
-assert solve_line('.??..??...?##.', [1, 1, 3]) == 4
+# assert solve_line('.??..??...?##.', [1, 1, 3]) == 4
 # assert solve_line('?###????????', [3, 2, 1]) == 10
 # assert solve_line('?#?#?#?#?#?#?#?', [1, 3, 1, 6]) == 1
 # assert solve_line('????.######..#####.', [1, 6, 5]) == 4
@@ -109,6 +137,7 @@ assert solve_line('.??..??...?##.', [1, 1, 3]) == 4
 # print(solve_line('??###?????????????', [4,2,1]))
 # print(solve_line('?#?#?????.#..????', [3,3,1,1,1]))
 # print(solve_line('?.???.?.?###??#', [2,7]))
+# print(solve_line('????.#????#?????#??#', [1,2,1,1,7]))
 
 # print(solve_line('???.###????.###????.###????.###????.###', [1,1,3,1,1,3,1,1,3,1,1,3,1,1,3]))
 # print(solve_line('?'.join(['?###????????']*5), [3,2,1]*5))
