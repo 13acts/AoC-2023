@@ -6,9 +6,9 @@ U = '?'
 X = '.'
 O = '#'
 
-PART = 2
+PART = 1
 STEP_DEBUG = False
-P2_DEBUG = True
+P2_DEBUG = False
 
 with open('data/12.txt') as f:
     lines = f.read().splitlines()
@@ -31,12 +31,8 @@ def solve_line(symbols, guide):
             ic(frame)
         cache += [valid_combinations(guide[i], frame, symbols[frame[0]:frame[1]+1])]
     
-    # if P2_DEBUG:
-    ic(cache)
-    # print(list(itertools.product(*cache)))
-
-    ####### OPTIMIZED UP TO THIS POINT ##########
-    # Some lines can have products len up to 10e+19
+    if P2_DEBUG:
+        ic(cache)
 
     validated = solve(cache, symbols, guide)
 
@@ -47,6 +43,9 @@ def solve_line(symbols, guide):
 
 
 def is_aligned(combin, ref):
+    '''
+    Check if combin is aligned with ref (absolute check)
+    '''
     for i in range(len(ref)):
         if (combin[i] == O and ref[i] == X) or (combin[i] == X and ref[i] == O):
             return False
@@ -54,10 +53,17 @@ def is_aligned(combin, ref):
 
 
 def frames(total:int, numbers:list[int]) -> list:
+    '''
+    Absolute frame that a contig reside in, ie the contig cannot be outside of this frame.
+    Find frame for a list of numbers reside in total length
+    '''
     return [(sum(x+1 for x in numbers[:i]), total-1-sum(x+1 for x in numbers[i+1:])) for i in range(len(numbers))]
 
 
 def valid_combinations(k:int, frame:tuple, ref:str) -> list:
+    '''
+    Combinations of k-mer in frame that itself is aligned to ref (primrary check)
+    '''
     n = frame[1] - frame[0] + 1 - k
     result = []
     for i in range(n+1):
@@ -70,20 +76,29 @@ def valid_combinations(k:int, frame:tuple, ref:str) -> list:
 def solve(cache, symbols, guide):
     count = 0
     def recur(curr_patch, previous_pos, n, log:list):
+        '''
+        Recursively find all possible combinations of starting positions in cache from left to right
+        '''
+        # Stopping condition: successfully get to the last item
         if curr_patch == len(guide):
             if P2_DEBUG:
                 print(log,'found 1')
             
+            # Final check if it's aligned with given data
             if is_aligned(index_to_string(log, guide, len(symbols)), symbols):
                 n += 1
             return n
+        
+        # For each value in the current item
         for patch_pos in cache[curr_patch]:
             
+            # Make sure flanking nodes are empty
             if patch_pos+guide[curr_patch] < len(symbols):
                 flank = patch_pos-1, patch_pos+guide[curr_patch]
             else:
                 flank = [patch_pos-1]
 
+            # Make sure next node is separated from previous node and flanking nodes are empty
             if patch_pos > previous_pos+guide[curr_patch-1] and all(symbols[x] != O for x in flank):
                 if P2_DEBUG:
                     ic(patch_pos)
@@ -92,6 +107,7 @@ def solve(cache, symbols, guide):
                 log.pop()    
         return n
     
+    # Initiate recursion with flank check
     for x in cache[0]:
         if x != 0:
             flank = x-1, x+guide[0]
@@ -101,24 +117,30 @@ def solve(cache, symbols, guide):
             if P2_DEBUG:
                 ic(x)        
             count += recur(1, x, 0, [x])
+    
     return count
 
 
 def index_to_string(log, guide, l):
+    '''
+    From a map of starting positions and contig length, return the final string
+    '''
     string = [X] * l
     for i, v in enumerate(log):
         for j in range(v, v+guide[i]):
             string[j] = O
     return ''.join(string)
 
-# print(index_to_string([0, 2, 5, 7, 10], [1, 2, 1, 1, 7], 20))
 
 
-total = 0
-for symbols, guide in layout[:1]:
-    print(symbols)
-    total += solve_line(symbols, guide)
-# print(sum(solve_line(symbols, guide) for symbols, guide in layout))
+############ main() ###########################
+
+# total = 0
+# for symbols, guide in layout[:1]:
+#     print(symbols)
+#     total += solve_line(symbols, guide)
+
+print(sum(solve_line(symbols, guide) for symbols, guide in layout))
 
 
 
