@@ -140,7 +140,7 @@ def index_to_string(log, guide, l):
 #     print(symbols)
 #     total += solve_line(symbols, guide)
 
-print(sum(solve_line(symbols, guide) for symbols, guide in layout))
+# print(sum(solve_line(symbols, guide) for symbols, guide in layout))
 
 
 
@@ -162,6 +162,6 @@ print(sum(solve_line(symbols, guide) for symbols, guide in layout))
 # print(solve_line('????.#????#?????#??#', [1,2,1,1,7]))
 
 # print(solve_line('???.###????.###????.###????.###????.###', [1,1,3,1,1,3,1,1,3,1,1,3,1,1,3]))
-# print(solve_line('?'.join(['?###????????']*5), [3,2,1]*5))
+print(solve_line('?'.join(['?###????????']*5), [3,2,1]*5))
 
 
